@@ -205,13 +205,20 @@ def ask(query: str, k: int) -> tuple[str, list[dict]]:
     chunks = [s["text"] if isinstance(s, dict) else s for s in sources]
     context = "\n\n".join(chunks)
 
-    prompt = f"""You are a helpful RAG assistant. Answer the user's question based ONLY on the context provided.
+    # Multi-turn conversation memory from recent messages
+    history_str = ""
+    if st.session_state.messages:
+        recent = st.session_state.messages[-4:]  # Last 2 conversation turns
+        history_lines = [f"{'User' if m['role'] == 'user' else 'Assistant'}: {m['content']}" for m in recent]
+        history_str = "\nPrevious Conversation:\n" + "\n".join(history_lines) + "\n"
+
+    prompt = f"""You are a helpful RAG assistant. Answer the user's question based ONLY on the document context provided.
 If the context does not contain the answer or does not mention the person/topic, clearly state: "The provided document does not contain information about '{query}'."
 
-Context:
+Document Context:
 {context}
-
-Question: {query}
+{history_str}
+Current Question: {query}
 Answer:"""
 
     inputs = tokenizer(prompt, return_tensors="pt")
