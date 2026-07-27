@@ -94,11 +94,11 @@ def ask(query: str, vectorstore, tokenizer, model, k: int, chat_history: list) -
         lines = [f"{'User' if m['role'] == 'user' else 'Assistant'}: {m['content']}" for m in recent]
         history_str = "\nPrevious Conversation:\n" + "\n".join(lines) + "\n"
 
-    prompt = f"""Context:
+    prompt = f"""Answer the question based ONLY on the context below. Be concise and factual.
+
+Context:
 {context}
 {history_str}
-Based on the context above, answer the question clearly. If the answer is not in the context, state "Information not found in document."
-
 Question: {query}
 Answer:"""
 
