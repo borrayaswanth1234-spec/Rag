@@ -207,7 +207,8 @@ def load_vectorstore(data_folder: str, file_choice: str, chunk: int):
             split = splitter.split_documents(docs)
             all_docs.extend(split)
 
-    return FAISS.from_documents(all_docs, embeddings)
+    vs = FAISS.from_documents(all_docs, embeddings)
+    return vs, all_docs
 
 
 @st.cache_resource(show_spinner="🤖 Loading language model…")
@@ -221,7 +222,7 @@ def load_model():
     return tokenizer, model
 
 
-vectorstore = load_vectorstore(data_dir, selected_file, chunk_size)
+vectorstore, loaded_chunks = load_vectorstore(data_dir, selected_file, chunk_size)
 tokenizer, model = load_model()
 
 # ── Hybrid Retrieval (FAISS + Keyword RRF) ────────────────────────────────────
@@ -283,31 +284,34 @@ def render_sources(sources):
             else:
                 st.markdown(f"**Chunk {i}:**\n> {src}")
 
-# ── Chat history ──────────────────────────────────────────────────────────────
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+# ── Main Layout Tabs ──────────────────────────────────────────────────────────
+tab_chat, tab_viz = st.tabs(["💬 Chatbot", "📊 Document Inspection & Vector Visualizer"])
 
-# Render previous messages
-for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
-        if msg["role"] == "assistant" and "sources" in msg:
-            render_sources(msg["sources"])
+with tab_chat:
+    # Render previous messages
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
 
-# ── RAG query function ────────────────────────────────────────────────────────
-def ask(query: str, k: int) -> tuple[str, list[dict]]:
-    sources = get_retrieved_chunks(query, k, search_mode)
-    chunks = [s["text"] if isinstance(s, dict) else s for s in sources]
-    context = "\n\n".join(chunks)
+    for msg in st.session_state.messages:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+            if msg["role"] == "assistant" and "sources" in msg:
+                render_sources(msg["sources"])
 
-    # Multi-turn conversation memory from recent messages
-    history_str = ""
-    if st.session_state.messages:
-        recent = st.session_state.messages[-4:]  # Last 2 conversation turns
-        history_lines = [f"{'User' if m['role'] == 'user' else 'Assistant'}: {m['content']}" for m in recent]
-        history_str = "\nPrevious Conversation:\n" + "\n".join(history_lines) + "\n"
+    # RAG query function
+    def ask(query: str, k: int) -> tuple[str, list[dict]]:
+        sources = get_retrieved_chunks(query, k, search_mode)
+        chunks = [s["text"] if isinstance(s, dict) else s for s in sources]
+        context = "\n\n".join(chunks)
 
-    prompt = f"""Answer the question based ONLY on the context below. Be concise and factual.
+        # Multi-turn conversation memory from recent messages
+        history_str = ""
+        if st.session_state.messages:
+            recent = st.session_state.messages[-4:]  # Last 2 conversation turns
+            history_lines = [f"{'User' if m['role'] == 'user' else 'Assistant'}: {m['content']}" for m in recent]
+            history_str = "\nPrevious Conversation:\n" + "\n".join(history_lines) + "\n"
+
+        prompt = f"""Answer the question based ONLY on the context below. Be concise and factual.
 
 Context:
 {context}
@@ -315,35 +319,59 @@ Context:
 Question: {query}
 Answer:"""
 
-    inputs = tokenizer(prompt, return_tensors="pt")
-    outputs = model.generate(**inputs, max_new_tokens=256)
-    answer = tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
-    return answer, sources
+        inputs = tokenizer(prompt, return_tensors="pt")
+        outputs = model.generate(**inputs, max_new_tokens=256)
+        answer = tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
+        return answer, sources
 
-# ── Chat input ────────────────────────────────────────────────────────────────
-if user_input := st.chat_input("Ask a question about your document…"):
-    # Show user message
-    st.session_state.messages.append({"role": "user", "content": user_input})
-    with st.chat_message("user"):
-        st.markdown(user_input)
+    # Chat input
+    if user_input := st.chat_input("Ask a question about your document…"):
+        st.session_state.messages.append({"role": "user", "content": user_input})
+        with st.chat_message("user"):
+            st.markdown(user_input)
 
-    # Generate answer
-    with st.chat_message("assistant"):
-        with st.spinner("Thinking…"):
-            answer, sources = ask(user_input, top_k)
+        with st.chat_message("assistant"):
+            with st.spinner("Thinking…"):
+                answer, sources = ask(user_input, top_k)
 
-        st.markdown(answer)
-        render_sources(sources)
+            st.markdown(answer)
+            render_sources(sources)
 
-    st.session_state.messages.append({
-        "role": "assistant",
-        "content": answer,
-        "sources": sources,
-    })
+        st.session_state.messages.append({
+            "role": "assistant",
+            "content": answer,
+            "sources": sources,
+        })
 
-# ── Empty state hint ──────────────────────────────────────────────────────────
-if not st.session_state.messages:
-    st.info(
-        "👆 Type a question in the chat box below. "
-        f"Currently loaded: **{selected_file}** | Mode: **{search_mode}**"
-    )
+    if not st.session_state.messages:
+        st.info(
+            "👆 Type a question in the chat box below. "
+            f"Currently loaded: **{selected_file}** | Mode: **{search_mode}**"
+        )
+
+with tab_viz:
+    st.subheader("📊 Index & Vector Metrics")
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Total Chunks Indexing", len(loaded_chunks))
+    col2.metric("Chunk Size Limit", f"{chunk_size} chars")
+    col3.metric("Embedding Dimension", "384 (MiniLM)")
+    col4.metric("Active Selection", "All Docs" if selected_file.startswith("🌐") else "1 Document")
+
+    st.markdown("---")
+    st.subheader("🔍 Text Chunk Explorer")
+
+    doc_sources = sorted(list(set(doc.metadata.get("source", "doc") for doc in loaded_chunks)))
+    filter_doc = st.selectbox("Filter chunks by source document:", ["All Documents"] + doc_sources)
+
+    filtered_chunks = [
+        doc for doc in loaded_chunks
+        if filter_doc == "All Documents" or doc.metadata.get("source", "") == filter_doc
+    ]
+
+    st.caption(f"Showing **{len(filtered_chunks)}** chunk(s)")
+
+    for idx, chunk_doc in enumerate(filtered_chunks[:50], 1):
+        src_file = chunk_doc.metadata.get("source", "doc")
+        char_len = len(chunk_doc.page_content)
+        with st.expander(f"Chunk #{idx} | 📄 {src_file} ({char_len} characters)"):
+            st.code(chunk_doc.page_content, language="markdown")
