@@ -99,7 +99,7 @@ st.markdown("""
 st.markdown('<div class="main-title">📄 DocuMind AI</div>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">Ask questions from your document — powered by Hybrid RAG + Flan-T5</div>', unsafe_allow_html=True)
 
-# ── Helper: PDF Text Extractor ────────────────────────────────────────────────
+# ── Helpers: Document Text Extractors ──────────────────────────────────────────
 def extract_text_from_pdf(file_bytes: bytes) -> str:
     try:
         import pypdf
@@ -110,9 +110,18 @@ def extract_text_from_pdf(file_bytes: bytes) -> str:
             if extracted:
                 text += extracted + "\n"
         return text
-    except ImportError:
-        st.warning("⚠️ `pypdf` is not installed. Please run `pip install pypdf` to parse PDFs.")
+    except Exception:
         return file_bytes.decode("latin1", errors="ignore")
+
+
+def extract_text_from_docx(file_bytes: bytes) -> str:
+    try:
+        import docx
+        doc = docx.Document(io.BytesIO(file_bytes))
+        return "\n".join([p.text for p in doc.paragraphs if p.text])
+    except Exception:
+        return file_bytes.decode("utf-8", errors="ignore")
+
 
 # ── Sidebar: file uploader & settings ─────────────────────────────────────────
 with st.sidebar:
@@ -121,8 +130,8 @@ with st.sidebar:
     data_dir = "data"
     os.makedirs(data_dir, exist_ok=True)
 
-    # File Uploader
-    uploaded_file = st.file_uploader("📥 Upload a PDF or TXT file", type=["pdf", "txt"])
+    # File Uploader (.pdf, .txt, .docx, .md)
+    uploaded_file = st.file_uploader("📥 Upload Document", type=["pdf", "txt", "docx", "md"])
     if uploaded_file is not None:
         filename = uploaded_file.name
         file_bytes = uploaded_file.read()
@@ -134,6 +143,13 @@ with st.sidebar:
             with open(save_path, "w", encoding="utf-8") as f:
                 f.write(text_content)
             st.success(f"✅ Saved & parsed PDF: `{txt_filename}`")
+        elif filename.endswith(".docx"):
+            text_content = extract_text_from_docx(file_bytes)
+            txt_filename = filename[:-5] + ".txt"
+            save_path = os.path.join(data_dir, txt_filename)
+            with open(save_path, "w", encoding="utf-8") as f:
+                f.write(text_content)
+            st.success(f"✅ Saved & parsed Word Doc: `{txt_filename}`")
         else:
             save_path = os.path.join(data_dir, filename)
             with open(save_path, "wb") as f:
@@ -141,7 +157,7 @@ with st.sidebar:
             st.success(f"✅ Saved file: `{filename}`")
 
     # Document Picker
-    all_files = [f for f in os.listdir(data_dir) if f.endswith(".txt")]
+    all_files = [f for f in os.listdir(data_dir) if f.endswith((".txt", ".md"))]
     if not all_files:
         st.error("No documents found in /data. Please upload a file above.")
         st.stop()
@@ -163,6 +179,20 @@ with st.sidebar:
     if st.button("🧹 Clear Chat History", use_container_width=True):
         st.session_state.messages = []
         st.rerun()
+
+    # Export Transcript Button
+    if "messages" in st.session_state and st.session_state.messages:
+        report_md = "# DocuMind AI — Q&A Chat Transcript\n\n"
+        for m in st.session_state.messages:
+            role_title = "👤 User" if m["role"] == "user" else "🤖 Assistant"
+            report_md += f"### {role_title}\n{m['content']}\n\n"
+        st.download_button(
+            label="📥 Export Chat Report (.md)",
+            data=report_md,
+            file_name="documind_chat_report.md",
+            mime="text/markdown",
+            use_container_width=True
+        )
 
 # ── Auto-reset chat on document change ─────────────────────────────────────────
 if "current_file" not in st.session_state:
