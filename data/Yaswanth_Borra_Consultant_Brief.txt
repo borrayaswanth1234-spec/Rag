@@ -1,0 +1,88 @@
+Yaswanth Borra
+BTech AI & Data Science  ·  OCI Certified  ·  Entry-level AI/ML Engineer
+3
+92%
+87%
+60%
+End-to-end projects
+YOLO detection accuracy
+RAG retrieval precision
+Hallucination reduced
+YOUR 60-SECOND PITCH TO THE CONSULTANT
+"I'm a recent BTech graduate in AI & Data Science with hands-on experience in three production-grade AI
+systems — a computer vision app, a RAG pipeline, and an AI chatbot. I'm OCI Generative AI certified and
+have worked across the full stack: model training, REST API deployment, frontend dashboards, and LLM
+integration using LangChain and ChromaDB. I'm now targeting entry-level AI/ML engineering roles."
+PROJECT 1 — TRAFFIC VIOLATION DETECTION SYSTEM
+Tech: YOLOv8  ·  Flask REST API  ·  HTML/JS Frontend  ·  Computer Vision
+Q: Walk me through the Traffic Violation project.
+I built a full-stack app that detects traffic violations in real-time video. The backend uses YOLOv8 — a
+state-of-the-art object detection model — running on a Flask REST API with 6 endpoints for upload, inference,
+and report generation. The frontend is HTML/JS. I trained on a custom dataset of 3,000+ vehicle images and
+achieved ~92% detection accuracy. I also optimized it to process 25+ FPS on standard GPU hardware and
+reduced API response time to under 300ms using batching and Flask threading.
+Q: Why YOLOv8 specifically?
+YOLO (You Only Look Once) v8 is the latest generation — faster and more accurate than older versions. It
+uses a single neural network pass for detection, making it ideal for real-time video. Alternatives like Faster
+R-CNN are more accurate but too slow for live processing.
+Q: What challenges did you face?
+Two main ones: (1) Getting real-time performance — I had to implement batched inference and optimize Flask
+threading to stay under 300ms. (2) Bounding box accuracy — I used NMS (Non-Maximum Suppression)
+post-processing to remove duplicate detections and wrote a browser-rendered overlay to display them cleanly.
+PROJECT 2 — RAG-BASED QUESTION ANSWERING SYSTEM
+Tech: LangChain  ·  ChromaDB + FAISS  ·  GPT-3.5 / Ollama Llama 2  ·  HuggingFace Embeddings
+Q: What is a RAG pipeline and why did you build one?
+RAG stands for Retrieval-Augmented Generation. Instead of relying purely on what an LLM knows (which can
+be outdated or hallucinated), RAG retrieves relevant documents from your own knowledge base and feeds
+them as context to the LLM before it answers. I built this to enable Q&A; over 50+ custom documents — which
+a standard LLM cannot do reliably on its own.
+Q: How did you reduce hallucination by 60%?
+
+Hallucination happens when the model makes up facts. By grounding every answer in retrieved document
+chunks — using semantic similarity search with sub-100ms latency — the model only answers from verified
+content. I also used MMR (Maximal Marginal Relevance) re-ranking to ensure diverse, relevant chunks were
+passed as context. The 60% reduction was measured against a baseline with no retrieval.
+Q: What's the difference between ChromaDB and FAISS?
+Both are vector stores for embeddings and similarity search. FAISS (by Meta) is in-memory — fast, but no
+persistence without extra work. ChromaDB is a full vector database with persistence, metadata filtering, and a
+REST interface. I used both to support cloud (GPT-3.5) and local (Ollama Llama 2) deployment scenarios.
+Q: How did you evaluate — what does 87% precision mean?
+I built an evaluation set of 500 questions from the knowledge base with known correct answers. Retrieval
+precision at 87% means that for 87 out of 100 questions, the top retrieved chunks actually contained the
+correct answer. This was measured using cosine similarity scoring between retrieved and expected passages.
+PROJECT 3 — GEMINI AI CHATBOT ("ARIA")
+Tech: Google Gemini 2.5 Flash API  ·  google-genai  ·  Persistent Memory  ·  Python
+Q: What makes this chatbot different from calling the Gemini API directly?
+Three things: (1) Custom personality — 'Aria' has a defined character injected via system prompt. (2)
+Persistent conversation memory using the google-genai library's history management, so it remembers the full
+conversation across turns. (3) Crash-safe logging — all messages are written with append mode and
+flush-on-write, so no data is lost if the process crashes. It's also deployed to GitHub following API key best
+practices.
+COMMON CROSS-CUTTING QUESTIONS
+Q: What is your OCI certification and what does it cover?
+Oracle Cloud Infrastructure Generative AI Professional. It covers LLM fundamentals, prompt engineering,
+OCI-specific models (Cohere Command, Meta Llama 2), RAG architecture, and LangChain-based pipelines on
+Oracle's cloud. It validates I can design and deploy AI solutions on enterprise cloud infrastructure.
+Q: You've used cloud LLMs (GPT-3.5, Gemini) and local ones (Ollama). What's the trade-off?
+Cloud LLMs are more capable but cost money per token and send data externally — not suitable for sensitive
+enterprise data. Local models via Ollama (Llama 2) are free, fully private, and run offline, but require capable
+hardware and are generally less powerful. My RAG system supports both, so the deployment can switch based
+on client privacy requirements and budget.
+Q: Where do you want to grow in AI/ML?
+I want to deepen in two directions: production MLOps (model deployment, monitoring, pipelines at scale) and
+multimodal AI (combining vision and language, as my traffic project evolved into). I'm also actively exploring
+AWS Bedrock for enterprise RAG deployments.
+
+KEY TIPS WHEN TALKING TO THE SENIOR CONSULTANT
+Lead with impact, not jargon. Frame numbers clearly — '92% accuracy' and '300ms response time' are tangible. Go
+technical only if they push.
+Your strongest story is the RAG project. Measurable results (60% hallucination reduction, 87% precision) on a
+problem enterprises pay to solve.
+Be ready for 'Why not just use X?' For every tool — YOLO, FAISS, ChromaDB, Ollama — know the alternative you
+didn't pick and why.
+Cloud vs. local LLM is a differentiator. Most freshers know only one. Supporting both shows you understand data
+privacy, cost, and enterprise constraints.
+End with a forward-looking statement. After any project, say what you'd do next — it shows you think beyond the
+immediate task.
+ Yaswanth Borra  ·  borrayaswanth1234@gmail.com  ·  +919030886209  ·  Khammam, India
+

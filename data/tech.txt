@@ -1,0 +1,44 @@
+What is RAG?
+RAG stands for Retrieval-Augmented Generation. It is a technique in natural language processing that combines information retrieval with text generation. Instead of relying solely on a pre-trained model's internal knowledge, RAG first retrieves relevant documents or passages from an external knowledge base, then uses that retrieved context to generate an accurate and grounded answer.
+
+How does RAG work?
+RAG works in two main stages. In the retrieval stage, the user's query is converted into a vector embedding using a sentence transformer model. This embedding is then compared against a vector database of pre-embedded document chunks using similarity search. The most relevant chunks are retrieved. In the generation stage, the retrieved chunks are injected into a prompt as context, and a language model generates the final answer based only on that context.
+
+What is a Vector Database?
+A vector database is a specialized database designed to store and search high-dimensional vector embeddings. Unlike traditional databases that match exact values, vector databases use approximate nearest neighbor search algorithms to find embeddings that are semantically similar to a query embedding. Popular vector databases include FAISS, Pinecone, Chroma, and Weaviate.
+
+What is FAISS?
+FAISS stands for Facebook AI Similarity Search. It is an open-source library developed by Meta AI Research that enables efficient similarity search and clustering of dense vectors. FAISS is widely used for building vector stores in RAG pipelines because it is fast, scalable, and works well on both CPU and GPU.
+
+What are Embeddings?
+Embeddings are dense numerical vector representations of text. They capture the semantic meaning of words, sentences, or documents in a high-dimensional space. Texts with similar meaning have embeddings that are close together in this space. Models like sentence-transformers/all-MiniLM-L6-v2 are commonly used to generate embeddings for RAG systems.
+
+What is LangChain?
+LangChain is an open-source framework for building applications powered by large language models. It provides tools for document loading, text splitting, embedding generation, vector store integration, and prompt management. LangChain makes it easier to build complex LLM pipelines such as RAG systems, chatbots, and AI agents.
+
+What is Flan-T5?
+Flan-T5 is a family of language models developed by Google. It is based on the T5 (Text-to-Text Transfer Transformer) architecture and fine-tuned using instruction tuning on a large collection of tasks. Flan-T5 models are sequence-to-sequence models, meaning they take text as input and produce text as output. They are lightweight and run well on CPU, making them suitable for local RAG applications.
+
+What is the Transformer Architecture?
+The Transformer architecture, introduced by Vaswani et al. in 2017, is the foundation of modern Large Language Models. It relies on a Self-Attention Mechanism that allows the model to weigh the importance of different words in a sequence regardless of their positional distance. Transformers process text in parallel rather than sequentially, enabling faster training on large datasets.
+
+What is Attention Mechanism?
+The Self-Attention Mechanism calculates mathematical relevance scores between every pair of words in a sentence. This allows a model to resolve ambiguity, such as understanding what "it" refers to in complex sentences. Multi-Head Attention enables the model to focus on multiple relationships simultaneously (e.g. syntax, semantics, and tone).
+
+What is LLM Hallucination?
+Hallucination occurs when a Large Language Model generates plausible-sounding but factually incorrect or fabricated information. Hallucinations happen because LLMs predict probabilistic token sequences rather than searching a ground-truth database. RAG mitigates hallucinations by constraining the LLM to answer strictly using retrieved factual documents.
+
+What is LoRA (Low-Rank Adaptation)?
+LoRA is a Parameter-Efficient Fine-Tuning (PEFT) technique for adaptation of large pre-trained language models. Instead of updating all billions of parameters during training, LoRA freezes the original model weights and injects trainable rank-decomposition matrices into each layer, drastically reducing memory overhead and training time.
+
+What is Model Quantization?
+Quantization is a model compression technique that reduces the precision of model weights from 32-bit floating point (FP32) to lower bit representations like 8-bit (INT8) or 4-bit (INT4). Quantization allows large LLMs to run locally on consumer hardware and CPUs with significantly reduced RAM requirements while preserving accuracy.
+
+What is Semantic Search vs Keyword Search?
+Keyword search (like BM25 or TF-IDF) matches exact words or stems in documents. Semantic search uses vector embeddings to match the underlying conceptual meaning of a query, even if the query uses completely different vocabulary from the source document (e.g. matching "automobile" with "car").
+
+What is an AI Agent?
+An AI Agent is an autonomous system powered by an LLM that can reason, plan, and execute multi-step workflows using tools. Agents can perform web searches, run code, call external APIs, read databases, and interact with operating systems to accomplish complex user goals.
+
+What is Tokenization?
+Tokenization is the process of breaking down raw text into smaller sub-word units called tokens. Models convert tokens into numerical IDs using tokenizers (such as Byte-Pair Encoding or WordPiece) before feeding them into neural networks. 1,000 words typically correspond to approximately 1,300 to 1,500 tokens in English.

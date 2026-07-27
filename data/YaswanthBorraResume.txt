@@ -1,0 +1,34 @@
+BORRA YASW ANTH
+♂phone+91 9030886209 | /envel⌢peborrayaswanth1234@gmail.com | /linkedinlinkedin-iamyaswanth | /githubgithub-YaswanthBorra
+EDUCA TION
+Malla Reddy College of Engineering, Hyderabad 2021 - 2025
+Bachelor of Technology in Computer Science and Engineering(AI/DS)
+Sri Chaitanya Junior college of Science, Khammam. 2019 - 2021
+Class 12 - Board of Intermediate Education, Telangana Percentage : 84.6%
+New Little Flower School, Khammam 2019
+Class 10 - Secondary Education, Government of Telangana GPA : 8.8
+TECHNICAL SKILLS
+Programming Languages : Python
+T echnologies : Gen AI | RAG | LLM’S | ML
+T ools : Git | Github | VS Code
+PROJECTS
+AI CHA T BOT | Source Code
+• Built an AI chatbot that reads content from URLs and answers queries using Retrieval-Augmented Gener-
+ation.
+• Implemented F AISS vector store with Ollama Phi-3 Mini embeddings for fast semantic search.
+• Used LangChain RetrievalQA to generate context-aware responses with source citations.
+• Developed an interactive Streamlit UI for querying and displaying results.
+• Stack: Python, LangChain, F AISS, Ollama, Streamlit
+Godrej Store | View App | Source Code
+• Built a MERN stack virtual shopping platform where users can browse, search, and manage products in a cart.
+• Implemented a Binary Search T ree (BST) for cart management, enabling O(log n) insertion and deletion
+for efficient updates.
+• Demonstrated application of data structures in real-world web apps, optimizing search and cart operations.
+• Designed a responsive React frontend with real-time search suggestions and intuitive cart UI.
+T raffic violation and detection system
+• A Traffic Violation and Detection System using computer vision and machine learning automates the detection
+of traffic violations.
+• It involves capturing real-time footage via cameras,using object detection and image processing to identify
+violations like speeding,running,red lights and illegal parking.
+POSITION OF RESPONSIBILITY
+• Member of cricket team of sports club.
