@@ -14,8 +14,90 @@ st.set_page_config(
     layout="centered",
 )
 
-st.title("📄 DocuMind AI")
-st.caption("Ask questions from your document — powered by Hybrid RAG + Flan-T5")
+# ── Custom CSS Design System ──────────────────────────────────────────────────
+st.markdown("""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap');
+
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+    }
+    
+    h1, h2, h3 {
+        font-family: 'Outfit', sans-serif !important;
+    }
+
+    .main-title {
+        background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 2.6rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin-bottom: 0.2rem;
+    }
+    
+    .subtitle {
+        color: #94a3b8;
+        font-size: 1.05rem;
+        margin-bottom: 1.5rem;
+    }
+
+    div[data-testid="stSidebar"] {
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(12px);
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    
+    .badge-high {
+        background: rgba(16, 185, 129, 0.18);
+        color: #34d399;
+        border: 1px solid rgba(52, 211, 153, 0.3);
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    .badge-medium {
+        background: rgba(245, 158, 11, 0.18);
+        color: #fbbf24;
+        border: 1px solid rgba(251, 191, 36, 0.3);
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    .badge-low {
+        background: rgba(99, 102, 241, 0.18);
+        color: #818cf8;
+        border: 1px solid rgba(129, 140, 248, 0.3);
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    .badge-file {
+        background: rgba(255, 255, 255, 0.08);
+        color: #cbd5e1;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-right: 6px;
+    }
+
+    .stExpander {
+        background: rgba(30, 41, 59, 0.4) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 10px !important;
+        margin-top: 8px !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown('<div class="main-title">📄 DocuMind AI</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">Ask questions from your document — powered by Hybrid RAG + Flan-T5</div>', unsafe_allow_html=True)
 
 # ── Helper: PDF Text Extractor ────────────────────────────────────────────────
 def extract_text_from_pdf(file_bytes: bytes) -> str:
@@ -184,7 +266,20 @@ def render_sources(sources):
         for i, src in enumerate(sources, 1):
             if isinstance(src, dict):
                 src_file = src.get("source", "Document")
-                st.markdown(f"**Chunk {i}** — `{src_file}` *(Relevance Score: `{src['score']}%`)*:\n> {src['text']}")
+                score = src.get("score", 0)
+                if score >= 80:
+                    badge_class = "badge-high"
+                elif score >= 50:
+                    badge_class = "badge-medium"
+                else:
+                    badge_class = "badge-low"
+
+                st.markdown(
+                    f"**Chunk {i}** <span class='badge-file'>📄 {src_file}</span> "
+                    f"<span class='{badge_class}'>🎯 {score}% Match</span>\n\n"
+                    f"> {src['text']}",
+                    unsafe_allow_html=True
+                )
             else:
                 st.markdown(f"**Chunk {i}:**\n> {src}")
 
