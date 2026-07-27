@@ -152,7 +152,7 @@ with st.sidebar:
     st.markdown("---")
     st.subheader("🔍 Retrieval Settings")
     search_mode = st.radio("Search Mode", ["Hybrid (FAISS + Keyword RRF)", "Dense Only (FAISS)"])
-    chunk_size = st.slider("Chunk size (tokens)", 50, 500, 200, step=50)
+    chunk_size = st.slider("Chunk size (characters)", 100, 1000, 500, step=50)
     top_k = st.slider("Chunks retrieved (k)", 1, 6, 3)
 
     st.markdown("---")
@@ -189,7 +189,7 @@ def load_embeddings():
 @st.cache_resource(show_spinner="🔍 Building vector index…")
 def load_vectorstore(data_folder: str, file_choice: str, chunk: int):
     embeddings = load_embeddings()
-    splitter = RecursiveCharacterTextSplitter(chunk_size=chunk, chunk_overlap=20)
+    splitter = RecursiveCharacterTextSplitter(chunk_size=chunk, chunk_overlap=100)
     all_docs = []
 
     if file_choice == "🌐 All Documents (Combined)":
@@ -307,13 +307,12 @@ def ask(query: str, k: int) -> tuple[str, list[dict]]:
         history_lines = [f"{'User' if m['role'] == 'user' else 'Assistant'}: {m['content']}" for m in recent]
         history_str = "\nPrevious Conversation:\n" + "\n".join(history_lines) + "\n"
 
-    prompt = f"""You are a helpful RAG assistant. Answer the user's question based ONLY on the document context provided.
-If the context does not contain the answer or does not mention the person/topic, clearly state: "The provided document does not contain information about '{query}'."
-
-Document Context:
+    prompt = f"""Context:
 {context}
 {history_str}
-Current Question: {query}
+Based on the context above, answer the question clearly. If the answer is not in the context, state "Information not found in document."
+
+Question: {query}
 Answer:"""
 
     inputs = tokenizer(prompt, return_tensors="pt")
