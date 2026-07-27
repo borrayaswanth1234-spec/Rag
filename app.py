@@ -64,8 +64,8 @@ with st.sidebar:
         st.error("No documents found in /data. Please upload a file above.")
         st.stop()
 
-    selected_file = st.selectbox("📂 Choose a document", all_files)
-    doc_path = os.path.join(data_dir, selected_file)
+    doc_options = ["🌐 All Documents (Combined)"] + sorted(all_files)
+    selected_file = st.selectbox("📂 Choose a document", doc_options)
 
     st.markdown("---")
     st.subheader("🔍 Retrieval Settings")
@@ -105,15 +105,27 @@ def load_embeddings():
 
 
 @st.cache_resource(show_spinner="🔍 Building vector index…")
-def load_vectorstore(path: str, chunk: int):
-    loader = TextLoader(path, encoding="utf-8")
-    documents = loader.load()
-
-    splitter = RecursiveCharacterTextSplitter(chunk_size=chunk, chunk_overlap=20)
-    docs = splitter.split_documents(documents)
-
+def load_vectorstore(data_folder: str, file_choice: str, chunk: int):
     embeddings = load_embeddings()
-    return FAISS.from_documents(docs, embeddings)
+    splitter = RecursiveCharacterTextSplitter(chunk_size=chunk, chunk_overlap=20)
+    all_docs = []
+
+    if file_choice == "🌐 All Documents (Combined)":
+        files_to_load = [f for f in os.listdir(data_folder) if f.endswith(".txt")]
+    else:
+        files_to_load = [file_choice]
+
+    for fname in files_to_load:
+        fpath = os.path.join(data_folder, fname)
+        if os.path.exists(fpath):
+            loader = TextLoader(fpath, encoding="utf-8")
+            docs = loader.load()
+            for doc in docs:
+                doc.metadata["source"] = fname
+            split = splitter.split_documents(docs)
+            all_docs.extend(split)
+
+    return FAISS.from_documents(all_docs, embeddings)
 
 
 @st.cache_resource(show_spinner="🤖 Loading language model…")
@@ -127,7 +139,7 @@ def load_model():
     return tokenizer, model
 
 
-vectorstore = load_vectorstore(doc_path, chunk_size)
+vectorstore = load_vectorstore(data_dir, selected_file, chunk_size)
 tokenizer, model = load_model()
 
 # ── Hybrid Retrieval (FAISS + Keyword RRF) ────────────────────────────────────
@@ -137,12 +149,14 @@ def get_retrieved_chunks(query: str, k: int, mode: str) -> list[dict]:
         items = []
         for doc, dist in results:
             score_pct = round(max(0.0, 1.0 - (dist / 2.0)) * 100, 1)
-            items.append({"text": doc.page_content, "score": score_pct})
+            src_name = os.path.basename(doc.metadata.get("source", "doc"))
+            items.append({"text": doc.page_content, "score": score_pct, "source": src_name})
         return items
 
     # Hybrid Search with Reciprocal Rank Fusion (RRF)
     candidate_docs = vectorstore.similarity_search_with_score(query, k=min(k * 3, 15))
     chunks = [doc.page_content for doc, _ in candidate_docs]
+    sources = [os.path.basename(doc.metadata.get("source", "doc")) for doc, _ in candidate_docs]
     keywords = [w.lower() for w in query.split() if len(w) > 2]
 
     def keyword_score(text: str) -> float:
@@ -156,20 +170,21 @@ def get_retrieved_chunks(query: str, k: int, mode: str) -> list[dict]:
     for dense_rank, chunk in enumerate(chunks):
         kw_rank = kw_ranks[dense_rank]
         rrf_score = (1.0 / (60 + dense_rank)) + (1.0 / (60 + kw_rank))
-        rrf_scores.append((rrf_score, chunk))
+        rrf_scores.append((rrf_score, chunk, sources[dense_rank]))
 
     rrf_scores.sort(key=lambda x: x[0], reverse=True)
     items = []
-    for score, chunk in rrf_scores[:k]:
+    for score, chunk, src_name in rrf_scores[:k]:
         score_pct = round(min(100.0, (score / 0.03333) * 100), 1)
-        items.append({"text": chunk, "score": score_pct})
+        items.append({"text": chunk, "score": score_pct, "source": src_name})
     return items
 
 def render_sources(sources):
     with st.expander("📚 Source chunks used"):
         for i, src in enumerate(sources, 1):
             if isinstance(src, dict):
-                st.markdown(f"**Chunk {i}** *(Relevance Score: `{src['score']}%`)*:\n> {src['text']}")
+                src_file = src.get("source", "Document")
+                st.markdown(f"**Chunk {i}** — `{src_file}` *(Relevance Score: `{src['score']}%`)*:\n> {src['text']}")
             else:
                 st.markdown(f"**Chunk {i}:**\n> {src}")
 
